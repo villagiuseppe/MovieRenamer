@@ -17,13 +17,22 @@ namespace MovieRenamer
 {
     class Program
     {
+        private static string _language = "en";
+
         static void Main(string[] args)
         {
+            _language = Convert.ToString(ConfigurationManager.AppSettings["language"]);
+            while (string.IsNullOrWhiteSpace(_language))
+            {
+                Console.WriteLine("With which language to run search ? (two digit, es. en = english)");
+                _language = Console.ReadLine();
+            }
+
             var directory = new DirectoryInfo(ConfigurationManager.AppSettings["from"]);
             var files = Enumerable.Empty<FileInfo>();
             files = files.Concat(directory.GetFiles("*.mp4"));
             files = files.Concat(directory.GetFiles("*.m4v"));
-            
+                       
             foreach (var file in files)
             {
                 var task = HandleFile(file);
@@ -167,7 +176,7 @@ namespace MovieRenamer
         static async Task<Movie> GetMovie(int id)
         {
             var client = new ServiceClient("dc272f1ee966ae5074280085a087c231");
-            return await client.Movies.GetAsync(id, "en", true, System.Threading.CancellationToken.None);
+            return await client.Movies.GetAsync(id, _language, true, System.Threading.CancellationToken.None);
         }
 
         static async Task<Movies> SearchForMovie(string fileName)
@@ -179,9 +188,9 @@ namespace MovieRenamer
             fileName = fileName.Replace("_", " ");
             fileName = fileName.Replace("-", " ");
 
-            Console.WriteLine("Searching for '{0}'", fileName);
+            Console.WriteLine("Searching for film '{0}' language '{1}'", fileName, _language);
             var client = new ServiceClient("dc272f1ee966ae5074280085a087c231");
-            return await client.Movies.SearchAsync(fileName, "en", true, 1, System.Threading.CancellationToken.None);
+            return await client.Movies.SearchAsync(fileName, _language, true, 1, System.Threading.CancellationToken.None);
         }
     }
 }
